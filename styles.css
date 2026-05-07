@@ -215,7 +215,9 @@ h2 {
   color: var(--muted);
   background: #f9fafc;
   text-align: center;
+  cursor: pointer;
   outline: 0;
+  user-select: none;
 }
 
 .drop-zone strong {
@@ -224,6 +226,7 @@ h2 {
 }
 
 .drop-zone.drag-over,
+.drop-zone:hover,
 .drop-zone:focus-visible {
   border-color: var(--accent);
   background: #ecf8f7;

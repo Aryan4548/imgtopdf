@@ -555,6 +555,10 @@ function bindEvents() {
     addFiles(event.dataTransfer.files);
   });
 
+  elements.dropZone.addEventListener("click", () => {
+    elements.imageInput.click();
+  });
+
   elements.dropZone.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
