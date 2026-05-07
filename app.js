@@ -13,6 +13,7 @@ const elements = {
   orientation: document.querySelector("#orientation"),
   layout: document.querySelector("#layout"),
   imageFit: document.querySelector("#imageFit"),
+  pdfName: document.querySelector("#pdfName"),
   margin: document.querySelector("#margin"),
   marginValue: document.querySelector("#marginValue"),
   gap: document.querySelector("#gap"),
@@ -138,6 +139,7 @@ function getSettings() {
     orientation: elements.orientation.value,
     imagesPerPage: Number(elements.layout.value),
     imageFit: elements.imageFit.value,
+    pdfName: elements.pdfName.value.trim(),
     margin: Number(elements.margin.value),
     gap: Number(elements.gap.value),
     watermarkEnabled: elements.watermarkEnabled.checked,
@@ -147,6 +149,18 @@ function getSettings() {
     watermarkOpacity: Number(elements.watermarkOpacity.value) / 100,
     watermarkSize: Number(elements.watermarkSize.value),
   };
+}
+
+function getPdfFileName(name) {
+  const cleaned = name
+    .replace(/\.pdf$/i, "")
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[.\s-]+|[.\s-]+$/g, "")
+    .slice(0, 80);
+
+  return `${cleaned || "image-pdf"}.pdf`;
 }
 
 function getPageRatio(settings) {
@@ -577,8 +591,7 @@ async function generatePdf() {
       }
     }
 
-    const dateStamp = new Date().toISOString().slice(0, 10);
-    doc.save(`image-pdf-${dateStamp}.pdf`);
+    doc.save(getPdfFileName(settings.pdfName));
     showToast("PDF created.");
   } catch (error) {
     showToast(error.message || "Could not create the PDF.");
@@ -634,6 +647,7 @@ function bindEvents() {
     elements.orientation,
     elements.layout,
     elements.imageFit,
+    elements.pdfName,
     elements.margin,
     elements.gap,
     elements.watermarkEnabled,
