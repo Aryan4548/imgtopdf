@@ -416,6 +416,8 @@ input[type="range"] {
 }
 
 .preview-page-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   width: 100%;
   height: 100%;
@@ -447,29 +449,66 @@ input[type="range"] {
   object-fit: cover;
 }
 
-.preview-watermark {
+.preview-watermark-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  color: var(--warm);
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.05;
+  overflow: hidden;
+  pointer-events: none;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.preview-page.watermark-behind .preview-watermark-layer {
+  z-index: 0;
+}
+
+.preview-page.watermark-behind .preview-slot {
+  background: transparent;
+}
+
+.preview-watermark-layer.pattern {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+  justify-items: center;
+  padding: 7%;
+}
+
+.preview-watermark-mark {
+  max-width: 120%;
+  opacity: var(--watermark-opacity, 0.18);
+  overflow-wrap: anywhere;
+  transform: rotate(var(--watermark-rotate, -32deg));
+}
+
+.preview-watermark-layer.pattern .preview-watermark-mark {
+  font-size: var(--watermark-size, 20px);
+}
+
+.preview-watermark-layer.single .preview-watermark-mark {
   position: absolute;
   left: 50%;
   top: 50%;
-  z-index: 2;
   max-width: 88%;
-  color: var(--warm);
-  font-weight: 850;
-  line-height: 1;
-  opacity: var(--watermark-opacity, 0.18);
-  pointer-events: none;
-  text-align: center;
-  overflow-wrap: anywhere;
+  font-size: var(--watermark-size, 42px);
   transform: translate(-50%, -50%) rotate(var(--watermark-rotate, -32deg));
 }
 
-.preview-watermark.footer {
+.preview-watermark-layer.single.footer .preview-watermark-mark {
   top: auto;
   bottom: 12px;
   transform: translateX(-50%);
 }
 
-.preview-watermark.top {
+.preview-watermark-layer.single.top .preview-watermark-mark {
   top: 12px;
   transform: translateX(-50%);
 }
@@ -644,11 +683,11 @@ input[type="range"] {
     box-shadow: 0 8px 18px rgba(25, 32, 44, 0.08);
   }
 
-  .preview-watermark.footer {
+  .preview-watermark-layer.single.footer .preview-watermark-mark {
     bottom: 8px;
   }
 
-  .preview-watermark.top {
+  .preview-watermark-layer.single.top .preview-watermark-mark {
     top: 8px;
   }
 

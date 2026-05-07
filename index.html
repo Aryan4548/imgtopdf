@@ -113,10 +113,19 @@
               <label class="field">
                 <span>Placement</span>
                 <select id="watermarkPlacement">
-                  <option value="diagonal">Diagonal center</option>
-                  <option value="center">Center</option>
-                  <option value="footer">Footer</option>
-                  <option value="top">Top</option>
+                  <option value="pattern">Repeated diagonal</option>
+                  <option value="pattern-straight">Repeated straight</option>
+                  <option value="diagonal">Single diagonal</option>
+                  <option value="center">Single center</option>
+                  <option value="footer">Single footer</option>
+                  <option value="top">Single top</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Layer</span>
+                <select id="watermarkLayer">
+                  <option value="behind">Behind images</option>
+                  <option value="front">Over images</option>
                 </select>
               </label>
               <label class="field range-field">

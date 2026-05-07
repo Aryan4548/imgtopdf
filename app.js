@@ -20,6 +20,7 @@ const elements = {
   watermarkEnabled: document.querySelector("#watermarkEnabled"),
   watermarkText: document.querySelector("#watermarkText"),
   watermarkPlacement: document.querySelector("#watermarkPlacement"),
+  watermarkLayer: document.querySelector("#watermarkLayer"),
   watermarkOpacity: document.querySelector("#watermarkOpacity"),
   opacityValue: document.querySelector("#opacityValue"),
   watermarkSize: document.querySelector("#watermarkSize"),
@@ -142,6 +143,7 @@ function getSettings() {
     watermarkEnabled: elements.watermarkEnabled.checked,
     watermarkText: elements.watermarkText.value.trim(),
     watermarkPlacement: elements.watermarkPlacement.value,
+    watermarkLayer: elements.watermarkLayer.value,
     watermarkOpacity: Number(elements.watermarkOpacity.value) / 100,
     watermarkSize: Number(elements.watermarkSize.value),
   };
@@ -225,8 +227,12 @@ function renderPreview() {
   if (!state.images.length) return;
 
   pages.forEach((pageImages, pageIndex) => {
+    const hasWatermark = settings.watermarkEnabled && settings.watermarkText;
     const page = document.createElement("article");
     page.className = "preview-page";
+    if (hasWatermark) {
+      page.classList.add(`watermark-${settings.watermarkLayer}`);
+    }
     page.style.setProperty("--page-ratio", getPageRatio(settings));
     page.setAttribute("aria-label", `Page ${pageIndex + 1}`);
 
@@ -251,31 +257,60 @@ function renderPreview() {
       grid.append(slot);
     }
 
-    page.append(grid);
-
-    const watermark = createWatermark(settings);
-    if (watermark) {
-      page.append(watermark);
+    const watermark = createWatermarkLayer(settings);
+    if (watermark && settings.watermarkLayer === "behind") {
+      page.append(watermark, grid);
+    } else {
+      page.append(grid);
+      if (watermark) {
+        page.append(watermark);
+      }
     }
 
     elements.previewPages.append(page);
   });
 }
 
-function createWatermark(settings) {
-  if (!settings.watermarkEnabled || !settings.watermarkText) return null;
+function isPatternWatermark(settings) {
+  return settings.watermarkPlacement.startsWith("pattern");
+}
 
-  const watermark = document.createElement("div");
-  watermark.className = `preview-watermark ${settings.watermarkPlacement}`;
-  watermark.textContent = settings.watermarkText;
-  watermark.style.setProperty("--watermark-opacity", settings.watermarkOpacity);
-  watermark.style.fontSize = `clamp(16px, ${settings.watermarkSize / 5}vw, ${settings.watermarkSize * 1.6}px)`;
-
-  if (settings.watermarkPlacement === "center") {
-    watermark.style.setProperty("--watermark-rotate", "0deg");
+function getWatermarkAngle(settings) {
+  if (settings.watermarkPlacement === "pattern-straight" || settings.watermarkPlacement === "center") {
+    return 0;
   }
 
-  return watermark;
+  if (settings.watermarkPlacement === "top" || settings.watermarkPlacement === "footer") {
+    return 0;
+  }
+
+  return -32;
+}
+
+function createWatermarkLayer(settings) {
+  if (!settings.watermarkEnabled || !settings.watermarkText) return null;
+
+  const isPattern = isPatternWatermark(settings);
+  const layer = document.createElement("div");
+  layer.className = `preview-watermark-layer ${isPattern ? "pattern" : "single"} ${settings.watermarkPlacement}`;
+  layer.style.setProperty("--watermark-opacity", settings.watermarkOpacity);
+  layer.style.setProperty("--watermark-rotate", `${getWatermarkAngle(settings)}deg`);
+  layer.style.setProperty(
+    "--watermark-size",
+    isPattern
+      ? `clamp(10px, ${settings.watermarkSize / 8}vw, ${settings.watermarkSize * 0.78}px)`
+      : `clamp(16px, ${settings.watermarkSize / 5}vw, ${settings.watermarkSize * 1.6}px)`,
+  );
+
+  const markCount = isPattern ? 12 : 1;
+  for (let index = 0; index < markCount; index += 1) {
+    const mark = document.createElement("span");
+    mark.className = "preview-watermark-mark";
+    mark.textContent = settings.watermarkText;
+    layer.append(mark);
+  }
+
+  return layer;
 }
 
 function updateControls() {
@@ -453,17 +488,31 @@ function addWatermarkToPdf(doc, settings, pageWidth, pageHeight) {
   doc.saveGraphicsState?.();
   setPdfOpacity(doc, settings.watermarkOpacity);
   doc.setTextColor(200, 82, 44);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("helvetica", "bolditalic");
   doc.setFontSize(settings.watermarkSize);
 
-  if (settings.watermarkPlacement === "footer") {
+  if (isPatternWatermark(settings)) {
+    const columns = pageWidth > pageHeight ? 4 : 3;
+    const rows = pageWidth > pageHeight ? 3 : 5;
+    const angle = getWatermarkAngle(settings);
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        doc.text(text.toUpperCase(), ((column + 0.5) * pageWidth) / columns, ((row + 0.5) * pageHeight) / rows, {
+          align: "center",
+          angle,
+          baseline: "middle",
+        });
+      }
+    }
+  } else if (settings.watermarkPlacement === "footer") {
     doc.text(text, pageWidth / 2, pageHeight - margin / 2, { align: "center" });
   } else if (settings.watermarkPlacement === "top") {
     doc.text(text, pageWidth / 2, margin / 2 + settings.watermarkSize * 0.22, {
       align: "center",
     });
   } else {
-    const angle = settings.watermarkPlacement === "diagonal" ? -32 : 0;
+    const angle = getWatermarkAngle(settings);
     doc.text(text, pageWidth / 2, pageHeight / 2, {
       align: "center",
       angle,
@@ -515,11 +564,17 @@ async function generatePdf() {
       const slots = getGridSlots(pageWidth, pageHeight, settings);
       const pageImages = pages[pageIndex];
 
+      if (settings.watermarkLayer === "behind") {
+        addWatermarkToPdf(doc, settings, pageWidth, pageHeight);
+      }
+
       for (let imageIndex = 0; imageIndex < pageImages.length; imageIndex += 1) {
         await addImageToPdf(doc, pageImages[imageIndex], slots[imageIndex], settings.imageFit);
       }
 
-      addWatermarkToPdf(doc, settings, pageWidth, pageHeight);
+      if (settings.watermarkLayer === "front") {
+        addWatermarkToPdf(doc, settings, pageWidth, pageHeight);
+      }
     }
 
     const dateStamp = new Date().toISOString().slice(0, 10);
@@ -584,6 +639,7 @@ function bindEvents() {
     elements.watermarkEnabled,
     elements.watermarkText,
     elements.watermarkPlacement,
+    elements.watermarkLayer,
     elements.watermarkOpacity,
     elements.watermarkSize,
   ].forEach((element) => {
