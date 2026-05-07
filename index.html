@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Image PDF Maker</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23087f7a'/%3E%3Cpath d='M18 14h22l8 8v28H18z' fill='white'/%3E%3Cpath d='M40 14v10h8' fill='%23d9dee7'/%3E%3Cpath d='M23 42l7-9 5 6 4-5 6 8z' fill='%23c8522c'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="PDF builder">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Image PDF Maker</p>
+            <h1>Build a PDF from your images</h1>
+          </div>
+          <div class="topbar-actions">
+            <input id="imageInput" class="sr-only" type="file" accept="image/*" multiple />
+            <label class="button secondary" for="imageInput">
+              <i data-lucide="image-plus" aria-hidden="true"></i>
+              Add images
+            </label>
+            <button id="generatePdf" class="button primary" type="button" disabled>
+              <i data-lucide="file-down" aria-hidden="true"></i>
+              Make PDF
+            </button>
+          </div>
+        </header>
+
+        <div class="builder-grid">
+          <aside class="control-panel" aria-label="PDF settings">
+            <section class="panel-section">
+              <div class="section-heading">
+                <h2>Images</h2>
+                <span id="imageCount">0 selected</span>
+              </div>
+              <div id="dropZone" class="drop-zone" tabindex="0">
+                <i data-lucide="upload-cloud" aria-hidden="true"></i>
+                <strong>Drop images here</strong>
+                <span>or use Add images</span>
+              </div>
+              <ul id="imageList" class="image-list" aria-label="Selected images"></ul>
+            </section>
+
+            <section class="panel-section">
+              <div class="section-heading">
+                <h2>Layout</h2>
+              </div>
+              <label class="field">
+                <span>Page size</span>
+                <select id="pageSize">
+                  <option value="a4">A4</option>
+                  <option value="letter">Letter</option>
+                  <option value="legal">Legal</option>
+                  <option value="square">Square</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Orientation</span>
+                <select id="orientation">
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Images per page</span>
+                <select id="layout">
+                  <option value="1">1 large image</option>
+                  <option value="2">2 stacked images</option>
+                  <option value="4">2 x 2 grid</option>
+                  <option value="9">3 x 3 grid</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Image fit</span>
+                <select id="imageFit">
+                  <option value="contain">Fit inside box</option>
+                  <option value="cover">Fill and crop</option>
+                </select>
+              </label>
+              <label class="field range-field">
+                <span>Margin <output id="marginValue">12 mm</output></span>
+                <input id="margin" type="range" min="0" max="30" step="1" value="12" />
+              </label>
+              <label class="field range-field">
+                <span>Gap <output id="gapValue">6 mm</output></span>
+                <input id="gap" type="range" min="0" max="20" step="1" value="6" />
+              </label>
+            </section>
+
+            <section class="panel-section">
+              <div class="section-heading">
+                <h2>Watermark</h2>
+                <label class="switch">
+                  <input id="watermarkEnabled" type="checkbox" checked />
+                  <span></span>
+                </label>
+              </div>
+              <label class="field">
+                <span>Text</span>
+                <input id="watermarkText" type="text" value="Sample" maxlength="60" />
+              </label>
+              <label class="field">
+                <span>Placement</span>
+                <select id="watermarkPlacement">
+                  <option value="diagonal">Diagonal center</option>
+                  <option value="center">Center</option>
+                  <option value="footer">Footer</option>
+                  <option value="top">Top</option>
+                </select>
+              </label>
+              <label class="field range-field">
+                <span>Opacity <output id="opacityValue">18%</output></span>
+                <input id="watermarkOpacity" type="range" min="5" max="70" step="1" value="18" />
+              </label>
+              <label class="field range-field">
+                <span>Size <output id="fontSizeValue">34 pt</output></span>
+                <input id="watermarkSize" type="range" min="10" max="96" step="1" value="34" />
+              </label>
+            </section>
+          </aside>
+
+          <section class="preview-area" aria-label="PDF preview">
+            <div class="preview-toolbar">
+              <div>
+                <h2>Preview</h2>
+                <p id="previewMeta">Add images to start</p>
+              </div>
+              <button id="clearImages" class="icon-button" type="button" title="Clear images" disabled>
+                <i data-lucide="trash-2" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div id="emptyState" class="empty-state">
+              <i data-lucide="files" aria-hidden="true"></i>
+              <strong>No images yet</strong>
+            </div>
+            <div id="previewPages" class="preview-pages"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
