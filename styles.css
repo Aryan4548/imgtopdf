@@ -25,6 +25,7 @@ body {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  -webkit-text-size-adjust: 100%;
 }
 
 button,
@@ -109,6 +110,7 @@ h2 {
   padding: 0 16px;
   font-weight: 800;
   text-decoration: none;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -325,6 +327,10 @@ input[type="text"] {
   background: var(--surface);
 }
 
+input[type="text"] {
+  min-width: 0;
+}
+
 select:focus,
 input[type="text"]:focus,
 input[type="range"]:focus-visible {
@@ -334,6 +340,7 @@ input[type="range"]:focus-visible {
 
 input[type="range"] {
   width: 100%;
+  min-height: 30px;
   accent-color: var(--accent);
 }
 
@@ -522,7 +529,7 @@ input[type="range"] {
 
 @media (max-width: 920px) {
   .app-shell {
-    padding: 16px;
+    padding: 16px 16px 92px;
   }
 
   .topbar,
@@ -532,11 +539,17 @@ input[type="range"] {
 
   .topbar {
     display: grid;
+    gap: 14px;
   }
 
   .topbar-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .control-panel,
+  .preview-area {
+    box-shadow: 0 12px 28px rgba(25, 32, 44, 0.08);
   }
 
   .control-panel {
@@ -549,29 +562,190 @@ input[type="range"] {
   }
 }
 
-@media (max-width: 540px) {
+@media (max-width: 680px) {
   .app-shell {
-    padding: 12px;
+    padding: 12px 12px calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+
+  h1 {
+    font-size: clamp(1.45rem, 7vw, 1.9rem);
+    line-height: 1.12;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
   }
 
   .topbar-actions {
-    grid-template-columns: 1fr;
+    position: fixed;
+    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    z-index: 20;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid rgba(217, 222, 231, 0.94);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 14px 34px rgba(25, 32, 44, 0.18);
+    backdrop-filter: blur(12px);
+  }
+
+  .button,
+  .icon-button {
+    min-height: 48px;
   }
 
   .button {
     width: 100%;
+    min-width: 0;
+    padding: 0 10px;
+    font-size: 0.95rem;
+  }
+
+  .button svg,
+  .icon-button svg,
+  .drop-zone svg,
+  .empty-state svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .control-panel,
+  .preview-area {
+    border-radius: 8px;
+  }
+
+  .panel-section,
+  .preview-area {
+    padding: 14px;
+  }
+
+  .drop-zone {
+    min-height: 110px;
+    padding: 14px;
+  }
+
+  .image-list {
+    max-height: none;
   }
 
   .preview-pages {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .preview-page {
+    padding: 10px;
+    box-shadow: 0 8px 18px rgba(25, 32, 44, 0.08);
+  }
+
+  .preview-watermark.footer {
+    bottom: 8px;
+  }
+
+  .preview-watermark.top {
+    top: 8px;
+  }
+
+  .empty-state {
+    min-height: 220px;
   }
 
   .image-item {
     grid-template-columns: 48px minmax(0, 1fr);
+    gap: 9px;
+    min-height: 72px;
+    padding: 8px;
+  }
+
+  .image-item img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .image-name {
+    font-size: 0.86rem;
+  }
+
+  .image-size {
+    font-size: 0.74rem;
   }
 
   .image-actions {
     grid-column: 1 / -1;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    justify-content: stretch;
+  }
+
+  .image-actions .icon-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .preview-toolbar .icon-button {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .field {
+    font-size: 0.84rem;
+  }
+
+  select,
+  input[type="text"] {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .switch {
+    width: 52px;
+    height: 30px;
+  }
+
+  .switch span::after {
+    width: 22px;
+    height: 22px;
+  }
+
+  .switch input:checked + span::after {
+    transform: translateX(22px);
+  }
+
+  .toast {
+    right: 12px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .topbar-actions {
+    right: 10px;
+    left: 10px;
+  }
+
+  .button {
+    gap: 6px;
+    padding: 0 8px;
+    font-size: 0.88rem;
+  }
+
+  .panel-section,
+  .preview-area {
+    padding: 12px;
+  }
+
+  .preview-page {
+    padding: 8px;
   }
 }
